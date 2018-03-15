@@ -315,8 +315,14 @@ class KitBuilder(object):
         logger.info('Building puppet modules...')
 
         for puppet_module in self._puppet_modules:
-            cmd = 'puppet module build --color false {}'.format(
-                    puppet_module['path'])
+            if os.environ.get('TRAVIS'):
+                cmd = 'docker run --rm=true -v {}:/root joedborg/centos-puppet module build /root'.format(
+                    os.path.join(os.environ.get('PWD'), puppet_module['path'])
+                )
+            else:
+                cmd = 'puppet module build --color false {}'.format(
+                    puppet_module['path']
+                )
             self._run_command(cmd)
 
     def _copy_python_package(self, dist_dir, kit_build_dir):
