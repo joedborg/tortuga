@@ -18,6 +18,8 @@ from sys import exc_info
 
 import cherrypy
 
+from typing import Any
+
 from tortuga.exceptions.internalError import InternalError
 from tortuga.utility import tortugaStatus
 from tortuga.types.application import Application
@@ -85,14 +87,30 @@ class TortugaController(object):
 
         cls.addTortugaResponseHeaders(status, str(ex))
 
-    def formatResponse(self, response=None): \
-            # pylint: disable=no-self-use
+    @staticmethod
+    def formatResponse(response=None) -> Any:
         if response is not None:
             return response
 
         cherrypy.response.status = http.client.NO_CONTENT
 
         return ''
+
+    @staticmethod
+    def paginateResponse(response: Any, page_length: int = 50) -> Any:
+        """
+        If the response is a list, cut it into 
+        sublists sized by `page_length`.  If 
+        not, just return the object.
+
+        :param response: Any
+        :param page_length: Integer
+        :returns: Any or List Any
+        """
+        if isinstance(response, list):
+            return [response[i:i+page_length] for i  in range(0, len(response), page_length)]
+
+        return response
 
     def errorResponse(self, msg, code=None, http_status=http.client.BAD_REQUEST): \
             # pylint: disable=no-self-use
